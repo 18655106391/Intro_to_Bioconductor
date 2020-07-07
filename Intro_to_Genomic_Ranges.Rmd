@@ -1,0 +1,88 @@
+---
+title: "Intro_to_GenomicRanges"
+author: "Xuening"
+date: "7/3/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,message=F, warning=F)
+```
+
+## `GRanges` class
+
+GRanges class is a container to save genomic intervals by chromosome. To instantiate a GRanges, at least 3 elements should be provided: chromosome name, start, end.
+
+```{r}
+library(GenomicRanges)
+myGR <- GRanges("chr1:200-300")
+myGR
+```
+
+## Convert dataframe to GRanges
+
+```{r}
+seqnames <- c(rep("chrX",3),rep("chrY",2))
+start <- c(50,130,153,30,35)
+end <- c(120,140,154,40,55)
+strand <- c(rep("+",3),"*","-")
+score <- c(1,2,3,4,5)
+GC <- rep(0.25,5)
+df <- data.frame(seqnames,start,end,strand,score,GC)
+df
+
+myGR <- as(df,"GRanges")
+myGR
+```
+
+## GRanges accessors
+
+Common functions include:
+```{r}
+# get chromosome names
+seqnames(myGR)
+
+# get ranges
+ranges(myGR)
+
+# get metadata columns
+mcols(myGR)
+
+# get general information of chromosomes
+seqinfo(myGR)
+
+# get genome name
+genome(myGR)
+```
+
+Since we have score and GC as metadata, `score()`
+become accessor. Somehow GC doesn't work....
+```{r}
+score(myGR)
+mcols(myGR)$GC
+```
+
+Accessors are both setter and getter functions:
+
+```{r}
+genome(myGR) <- "HSapiens"
+genome(myGR)
+```
+
+## Explore chromosome X
+
+We have 1067 genes already known on chromosome X.
+
+```{r}
+library(TxDb.Hsapiens.UCSC.hg38.knownGene)
+hg <- TxDb.Hsapiens.UCSC.hg38.knownGene
+
+# select genes from chromosome X
+hg_chrX <- genes(hg, filter = list(tx_chrom = c("chrX")))
+hg_chrX
+
+class(hg_chrX)
+length(hg_chrX)
+```
+
+`hg_chrX` is a `GRanges` object.

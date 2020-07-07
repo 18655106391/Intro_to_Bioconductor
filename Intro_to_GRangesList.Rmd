@@ -1,0 +1,66 @@
+---
+title: "Intro_to_GRangesList"
+author: "Xuening"
+date: "7/3/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,message=F, warning=F)
+```
+
+## When to use list of GRanges
+Multiple GRanges objects may be combined into a GRangesList. For example, we can have a list of genes, but each gene is a list of transcripts. This list-of-list structure is appropriate for class `GRangesList`. 
+
+## Sliding windows
+
+SlidingWindows also generate a list of GRanges.
+
+```{r}
+library(TxDb.Hsapiens.UCSC.hg38.knownGene)
+hg <- TxDb.Hsapiens.UCSC.hg38.knownGene
+hg_chrX <- genes(hg, filter = list(tx_chrom = c("chrX")))
+slidingWindows(hg_chrX, width = 20000, step = 10000)
+```
+
+## Get transcripts
+
+```{r}
+transcripts(hg,columns=c("tx_id","tx_name","gene_id"),filter=list(tx_chrom="chrX"))
+```
+
+## Get transcripts by gene
+
+Gene ABCD1 has gene id 215 (ENTREZ ID). Let's find its transcripts.
+
+```{r}
+seqlevels(hg) <- c("chrX")
+# Get all transcripts by genn
+hg_Xt <- transcriptsBy(hg, by = "gene")
+hg_Xt[["215"]]
+```
+
+So we know ABCD1 genes has transcripts ID 222771,222772,and 222773.
+
+## Get exons of ABCD1 gene
+
+Let's find its exons.
+
+```{r}
+exons(hg, columns = c("tx_id","exon_id","tx_name","gene_id"), filter = list(gene_id = "215"))
+```
+
+To get exons by transcript:
+
+```{r}
+# prefilter hg to contain only "chrX"
+seqlevels(hg) <- c("chrX")
+exonsBytx <- exonsBy(hg, by = "tx")
+exonsBytx
+
+# get exons of abcd1 gene, with transcript ID 222771
+abcd1_222771 <- exonsBytx[["222771"]]
+abcd1_222771
+
+```
+

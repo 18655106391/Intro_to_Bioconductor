@@ -1,0 +1,108 @@
+---
+title: "Introduction to BS_genome"
+author: "Xuening"
+date: "7/2/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message=F, warning=F)
+```
+
+## About installation
+Check versions: use `sessionInfo()` or `packageVersion("PACKAGE_NAME")`.
+
+## Role of S4 in Bioconductor
+S3: Most packages in CRAN uses S3 system. It reacts differently, depending on the input, by using a generic function to decide which method to call. Eg. `plot()` can give various plots.
+```{r}
+methods(plot)
+```
+
+Yet the price of flexibility is vagueness. If the user gives an unexpected arguments, all the methods will be tried before the generic function returns an error.  
+  
+S4: S4 is more object oriented. It defines data first then create functions. The classes are formally defined. Inheritance is clear. Thus other can reuse the framework. This result in more complex implementation.  
+  
+To check if an object is S4, use `isS4()` or `str()`.  
+  
+To define a class,  we need to provide the following 3 pieces of information:  
+- class name  
+- slots (methods/fields)   
+- contains (inheritance)  
+  
+To check formal definition of a class, use `showClass("CLASSNAME")`
+```{r}
+library(BSgenome)
+showClass("BSgenome")
+```
+
+*Extends* shows the parent class of `BSgenome`. *Subclasses* shows the classes that inherit from it.  
+  
+To create an instance of a certain class, use function `new()`.
+
+```{r}
+a_genome <- new("BSgenome")
+class(a_genome)
+is(a_genome)
+isS4(a_genome)
+```
+
+Since class `BSgenome` has slots `organism`, `provider`, and `seqinfo`, we can retrieve these information using the following accessors:
+
+```{r}
+organism(a_genome)
+provider(a_genome)
+seqinfo(a_genome)
+```
+
+## Get yeast genome
+
+BSgenome package contains reference genome of a lot of organisms.
+```{r}
+available.genomes()
+```
+
+We can get yeast genome:
+```{r}
+library(BSgenome.Scerevisiae.UCSC.sacCer3)
+yeast <- BSgenome.Scerevisiae.UCSC.sacCer3
+```
+
+and use accessors to retrieve a lot of information.
+```{r}
+# chromosome number
+length(yeast)
+
+# chromosome names
+names(yeast)
+
+# length of sequence length
+seqlengths(yeast)
+
+# and organism, provider, seqinfo
+organism(yeast)
+provider(yeast)
+seqinfo(yeast)
+show(yeast)
+```
+
+## Get sequences
+```{r}
+getSeq(yeast)
+
+# select chromosome sequence by name
+getSeq(yeast,"chrM")
+
+# select start/end/width
+getSeq(yeast,end=10)
+```
+
+We can print sequence. `$` can be used to get specific chromosome :
+```{r}
+print(yeast$chrM)
+```
+
+`nchar()` count characters of a sequence.
+```{r}
+nchar(yeast$chrM)
+```
+

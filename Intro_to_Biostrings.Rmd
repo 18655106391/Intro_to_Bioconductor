@@ -1,0 +1,125 @@
+---
+title: "Intro_to_Biostrings"
+author: "Xuening"
+date: "7/2/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,warning=FALSE, message=FALSE )
+```
+
+## Introduction
+Biostrings implements algorithms for fast manipulation of large biological sequences.  
+  
+Let's see the alphabet of Biostrings.
+```{r}
+library(Biostrings)
+DNA_BASES
+RNA_BASES
+AA_STANDARD
+```
+
+ALPHABET contains more characters and symbols.
+
+```{r}
+DNA_ALPHABET
+RNA_ALPHABET
+AA_ALPHABET
+```
+
+## Transcription
+```{r}
+dna <- DNAString("ATAGGCTATAA")
+dna
+rna <- RNAString(dna)
+rna
+```
+
+
+## Translation
+```{r}
+head(RNA_GENETIC_CODE)
+aa <- translate(rna)
+aa
+
+# translate accepts dna
+aa <- translate(dna)
+aa
+```
+
+## Useful functions for string
+```{r}
+alphabet(dna)
+alphabetFrequency(dna)
+alphabet(dna, baseOnly=T)
+```
+
+```{r}
+dna
+
+# get sub-sequence
+subseq(dna,end=5)
+
+# get complement
+complement(dna)
+
+# get reverse
+reverse(dna)
+
+# get reverse complement
+reverseComplement(dna)
+reverse(complement(dna))
+```
+
+## Useful functions for a string set
+
+```{r}
+dnaSet <- DNAStringSet(dna,start=c(1,5,9),end=c(4,10,11))
+dnaSet
+```
+
+```{r}
+# number of strings
+length(dnaSet)
+
+# length of each string
+width(dnaSet)
+```
+
+`unlist()` convert a stringSet back to string.
+
+```{r}
+seq <- unlist(dnaSet)
+length(seq)
+```
+
+`rev()` revert the order of each sequence.
+```{r}
+rev(dnaSet)
+```
+
+## Pattern match
+
+```{r}
+
+library(BSgenome.Hsapiens.UCSC.hg19)
+hsapiens <- BSgenome.Hsapiens.UCSC.hg19
+chrx_seq <- hsapiens$chrX[1000000:1110000]
+chrx_seqset <- DNAStringSet(chrx_seq,start=c(1,10000,50000),end=c(1000,11000,51000))
+        
+# For single sequences
+matchPattern(pattern = "ACATGGGCCTACCATGGGAG", 
+              subject = chrx_seq, max.mismatch = 1)
+        
+# For Sets
+vmatchPattern(pattern = "ACATGGGCCTACCATGGGAG", 
+              subject = chrx_seqset, max.mismatch = 1)
+```
+
+## Find palindromes
+
+```{r}
+findPalindromes(chrx_seq)
+```
+

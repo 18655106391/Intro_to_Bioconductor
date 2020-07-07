@@ -1,0 +1,68 @@
+---
+title: "Intro_to_IRanges"
+author: "Xuening"
+date: "7/3/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,message=F,warning=F)
+```
+
+## Introduction to `IRanges`
+
+Package `IRanges` provides fundamental infrastructure and operations for manipulation intervals of sequences.
+
+```{r}
+library(IRanges)
+
+# define an IRanges using start and end
+my_range <- IRanges(start=20,end=30)
+my_range
+
+# define an IRanges with start and width
+my_range_width <- IRanges(start=c(20,30,40),width=c(10,10,10))
+my_range_width
+
+my_range_width <- IRanges(start=c(20,30,40),width=10)
+my_range_width
+
+my_range_end <- IRanges(start=c(1,20),end=30)
+my_range_end
+```
+
+Notice, width=end-start+1.
+
+## Introduction to Rle
+Rle stands for Run length encoding. It computes and stores the lengths and values of a vector or factor. It is a S4 container used to save long repititive vectors efficiently.
+
+```{r}
+vec <- c(3,2,2,2,3,3,4,2)
+Rle(vec)
+```
+
+## IRanges with logical vector
+```{r}
+IRanges(start=c(F,F,T,T,F,F,F,T,T,T,T))
+
+```
+
+## IRanges with logical Rle
+```{r}
+gi <- c(T,T,F,F,F,F,T,T,F)
+myRle <-Rle(gi) 
+
+# create IRanges with logical Rle
+IRanges(start=myRle)
+```
+
+## Useful functions
+
+```{r}
+# get length of each sequence
+width(my_range_width)
+
+# get number of sequences within IRanges
+length(my_range_width)
+```
+

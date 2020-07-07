@@ -1,0 +1,179 @@
+---
+title: "Intro_to_ShortRead"
+author: "Xuening"
+date: "7/6/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,message=F,warning=F)
+```
+Package `ShortRead` deals with fasta and fastq file.
+
+## fasta file
+Each sequence in fasta format takes 2 lines:  
+\> unique_sequence_identifier  
+raw_sequence_string
+
+```{r}
+library(ShortRead)
+
+# read fasta
+fasasample <- readFasta("covid19_sequence.fasta")
+fasasample
+id(fasasample)
+length(fasasample)
+width(fasasample)
+```
+
+So we read in one read with length 29800, named 117MT676397.
+
+## fastq
+Each read in fastq format contains 4 lines:  
+@ unique_sequence_identifier  
+raw_sequence_string  
++ optional id  
+quality encoding per sequence letter  
+
+```{r}
+# read Fastq file
+fq <- readFastq("SRR1971253.fastq")
+fq
+id(fq)
+
+# sample Fastq file
+set.seed(1)
+fs <- FastqSampler("SRR1971253.fastq",n=5)
+fq_sample <- yield(fs)
+fq_sample
+
+```
+
+We can get the first read using function `sread()`.
+```{r}
+sread(fq_sample)[1]
+```
+
+
+## Sequence quality
+Quality value $Q=-log(error\_rate)$. The quality of each base is encoded by a character. We can extract quality encoding from fastq file using `quality()`.
+
+
+```{r}
+quality(fq_sample)
+```
+
+We can know the meaning of each encoding character using function `PhredQuality()`
+```{r}
+PhredQuality(1:40)
+```
+
+We can get the integer scores.
+
+```{r}
+# convert FastqQuality class to PhredQuality class
+pq <- PhredQuality(quality(fq_sample))
+pq
+qs <- as(pq,"IntegerList")
+qs
+```
+
+A score larger than 30 is considered good quality.
+
+## Quality assessment
+
+```{r}
+qaSummary <- qa(fq_sample,lane=1)
+qaSummary
+names(qaSummary)
+```
+
+ShortReadQQA elements are accessed with qaSummary[["name"].
+
+```{r}
+qaSummary[["baseCalls"]]
+qaSummary[["readQualityScore"]]
+```
+
+To get a HTML report, use `browseURL()`.
+```{r eval=FALSE}
+browseURL(report(qaSummary))
+```
+
+## Alphabet by cycle
+
+Knowing how many A,C, G, T is added to all reads at each round can be important.
+```{r}
+alphabet(sread(fq_sample))
+
+abc <- alphabetByCycle(sread(fq_sample))
+abc
+
+# only first 4 rows are ATCG
+nucByCycle <- t(abc[1:4,])
+
+# convert to tibble
+library(dplyr)
+nucByCycle <- nucByCycle %>% as_tibble() %>%mutate(cycle=1:50) # add circle number
+nucByCycle
+
+# investigate how alphabet frequency change with cycle
+library(tidyverse)
+library(ggplot2)
+nucByCycle %>% 
+  # Gather the nucleotide letters in alphabet and get a new count column
+  gather(key = alphabet, value = count , -cycle) %>% 
+  ggplot(aes(x = cycle, y =  count, color = alphabet)) +
+  geom_line(size = 0.5 ) +
+  labs(y = "Frequency") +
+  theme_bw() +
+  theme(panel.grid.major.x = element_blank())
+```
+
+## Check for duplicates
+```{r}
+table(srduplicated(fq_sample))
+```
+
+## Filter
+
+Filters can be used to subset a `ShortReadQ` object, or directly to a fastq file.  
+  
+`nFilter()` has a threshold parameter, representing the maximum number of "N"s allowed on each read. 
+
+```{r}
+my_filter <- nFilter(threshold=10)
+fq_sample[my_filter(fq_sample)]
+
+# use the filter when reading
+filtered_fq <- readFastq("SRR1971253.fastq",filter=my_filter)
+filtered_fq
+```
+
+`idFilter()` uses a regular expression to select specific ids.
+
+```{r}
+my_idfilter <- idFilter(regex=":3:1")
+filtered_fq <-readFastq("SRR1971253.fastq",filter=my_idfilter)
+filtered_fq
+ShortRead::id(filtered_fq)[1]
+```
+
+`polynFilter()` accepts a maximum of certain number of  continuous letters per sequence. For example, we can create a filter to remove sequences that has more than 10 continuous "A"s.  
+
+```{r}
+my_polyA_filter <- polynFilter(threshold=10,nuc=c("A"))
+filtered_fq <-readFastq("SRR1971253.fastq",filter=my_polyA_filter)
+filtered_fq
+```
+
+`srFilter()` is a function to create our own filter.
+
+```{r}
+
+read_with_cutoff <- srFilter(function(x) {width(x)>minWidth},name='MinWidth')
+minWidth <- 51
+fq_sample[read_with_cutoff(fq_sample)]
+
+```
+
