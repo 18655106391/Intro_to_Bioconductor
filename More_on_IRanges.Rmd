@@ -1,0 +1,77 @@
+---
+title: "More_on_IRanges"
+author: "Xuening"
+date: "7/7/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,message = F,warning=F)
+```
+
+## Basics
+```{r}
+library(IRanges)
+ir <- IRanges(5,10)
+ir
+start(ir)
+end(ir)
+width(ir)
+```
+
+## Intra-range operations
+
+`shift()` shift Irange object by a given step, here 2. 
+```{r}
+shift(ir,-2)
+```
+
+`narrow()` narrow down an IRanges object. If `start`=2, then the returned IRanges starts with second position.
+
+```{r}
+ir
+narrow(ir,start=2)
+```
+
+`flank()` returns the range around the object.
+```{r}
+# Get the ranges of width 3 before the beginning:
+flank(ir,width=3,start=T,both=F)
+
+# Get the ranges of width 3 in the following
+flank(ir,width=3,start=F,both=F)
+
+# Get the ranges of width 3 before the beginning, but 3 at the beginning
+flank(ir,width=3,start=T,both=T)
+```
+
+`resize()` will only return a part from beginning, of given length.
+
+```{r}
+resize(ir,1)
+```
+
+## Inter-range operations
+```{r}
+ir <- IRanges(start=c(3,5,17), end=c(10,8,20))
+ir
+```
+
+`range()` returns the whole span of all ranges.
+
+```{r}
+range(ir)
+```
+
+`reduce()` collapses the ranges, so that integers are covered by only one range in the output.
+
+```{r}
+reduce(ir)
+```
+
+`gaps()` gives back the rages of integers which are in `range(ir)` but not covered by any of the ranges in `ir`.
+
+```{r}
+gaps(ir)
+```
+

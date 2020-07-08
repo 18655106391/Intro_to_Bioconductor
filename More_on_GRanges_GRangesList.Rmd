@@ -1,0 +1,112 @@
+---
+title: "More_on_GRanges_GRangesList"
+author: "Xuening"
+date: "7/7/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,message = F,warning = F)
+```
+
+## Define a `GRanges` object
+```{r}
+library("GenomicRanges")
+gr <- GRanges(seqnames=c("ChrZ"),
+              ranges=IRanges(start=c(5,10),end=c(35,45)),
+              strand="+",
+              seqlengths=c(ChrZ=100L))
+gr
+
+seqnames(gr)
+seqlengths(gr)
+```
+
+Functions in `IRanges` can also be applied to `GRanges` object.
+```{r}
+shift(gr,10)
+```
+
+But if we try to shift the range beyond the length of the chromosome, we will get a warining, but we can still get the result.
+
+```{r}
+shift(gr,80)
+```
+
+To avoid shift the range beyond length of chromosome, we can use `trim()`.
+
+```{r}
+trim(shift(gr,80))
+```
+
+`mcols()` can be used to retrieve or assign values to metadata columns.
+
+```{r}
+mcols(gr)
+mcols(gr)$value <- c(-1,4)
+gr
+```
+
+## Define a `GRangesList` list
+
+To define a GRangesList we can combine 2 or more GRanges object
+```{r}
+gr2 <- GRanges("ChrZ",IRanges(11:13,51:53),strand="+")
+grl <- GRangesList(gr, gr2)
+grl
+```
+
+## Operations on `GRangesList`
+
+`length()` finds the number of of GRanges object in the GRangesList.
+```{r}
+length(grl)
+```
+
+`elementNROWS()` returns the length of each GRanges. Each GRanges element can be retrieved using "[[]]"
+```{r}
+elementNROWS(grl)
+grl[[1]]
+```
+
+`width()` gives an IntegerList, indicating the length of each range in each GRange. 
+
+```{r}
+width(grl)
+```
+
+`sum()` gives the total length of each GRange
+```{r}
+sum(width(grl))
+```
+
+## `findOverlaps()`
+
+```{r}
+gr
+gr2
+fo <- findOverlaps(gr,gr2)
+fo
+```
+
+Query is the first argument passed to function `findOverlaps()`. Subject is the second.
+
+```{r}
+queryHits(fo)
+subjectHits(fo)
+```
+
+Notice, this function is strand specific. Only ranges on same chromosome and same strand can have overlaps.
+```{r}
+strand(gr2) <- "-"
+findOverlaps(gr,gr2)
+```
+
+
+## `%over%`
+
+```{r}
+strand(gr2) <- "+"
+gr %over% gr2
+```
+
